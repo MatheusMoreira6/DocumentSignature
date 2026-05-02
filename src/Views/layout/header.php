@@ -6,6 +6,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Document Signature</title>
 
+        <script>
+            const BASE_URL = "<?= BASE_URL ?>";
+        </script>
+
         <script src="<?= asset("vendor/jquery/jquery-4.0.0.min.js") ?>"></script>
         <script src="<?= asset("vendor/bootstrap/bootstrap.bundle.min.js") ?>"></script>
         <script src="<?= asset("app/js/app.js") ?>"></script>
