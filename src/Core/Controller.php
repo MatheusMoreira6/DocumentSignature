@@ -25,4 +25,11 @@ class Controller
         header("Location: " . BASE_URL . "/$route");
         exit;
     }
+
+    protected function layout(string $view, array $params = []): void
+    {
+        $this->view('layout/header', $params);
+        $this->view($view, $params);
+        $this->view('layout/footer', $params);
+    }
 }
