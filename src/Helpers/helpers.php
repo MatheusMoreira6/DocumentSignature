@@ -25,3 +25,8 @@ function asset(string $path): string
 {
     return BASE_URL . '/assets/' . ltrim($path, '/');
 }
+
+function url(string $route = ''): string
+{
+    return BASE_URL . '/' . ltrim($route, '/');
+}
