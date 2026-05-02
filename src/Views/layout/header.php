@@ -8,6 +8,7 @@
 
         <script src="<?= asset("vendor/jquery/jquery-4.0.0.min.js") ?>"></script>
         <script src="<?= asset("vendor/bootstrap/bootstrap.bundle.min.js") ?>"></script>
+        <script src="<?= asset("app/js/app.js") ?>"></script>
 
         <link rel="stylesheet" href="<?= asset("vendor/bootstrap/bootstrap.min.css") ?>">
         <link rel="stylesheet" href="<?= asset("vendor/bootstrap-icons/bootstrap-icons.min.css") ?>">
