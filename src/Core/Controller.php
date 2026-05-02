@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Helpers\Request;
+
 class Controller
 {
     protected function view(string $view, array $params = []): void
@@ -31,5 +33,20 @@ class Controller
         $this->view('layout/header', $params);
         $this->view($view, $params);
         $this->view('layout/footer', $params);
+    }
+
+    protected function validateGet(array $keys): bool
+    {
+        return Request::validateGet($keys);
+    }
+
+    protected function validatePost(array $keys): bool
+    {
+        return Request::validatePost($keys);
+    }
+
+    protected function validationErrors(): array
+    {
+        return Request::errors();
     }
 }
