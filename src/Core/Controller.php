@@ -8,7 +8,7 @@ class Controller
     {
         extract($params);
 
-        require BASE_PATH . "/src/views/{$view}.php";
+        require BASE_PATH . "/src/Views/{$view}.php";
     }
 
     protected function json(array $data, int $status = 200): void
