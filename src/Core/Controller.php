@@ -22,9 +22,9 @@ class Controller
         exit;
     }
 
-    protected function redirect(string $route): void
+    protected function redirect(string $route = ''): void
     {
-        header("Location: " . BASE_URL . "/$route");
+        header("Location: " . BASE_URL . '/' . ltrim($route, '/'));
         exit;
     }
 
