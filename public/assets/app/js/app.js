@@ -60,6 +60,21 @@
             }).showToast();
         },
     };
+
+    let is_redirecting = false;
+
+    window.handleRedirect = function (xhr) {
+        if (is_redirecting) return true;
+
+        const redirect = xhr.getResponseHeader("X-Redirect");
+
+        if (!redirect) return false;
+
+        is_redirecting = true;
+        window.location.href = redirect;
+
+        return true;
+    };
 })();
 
 (function ($) {

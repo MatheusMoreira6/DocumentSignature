@@ -24,7 +24,18 @@ class Controller
 
     protected function redirect(string $route = ''): void
     {
-        header("Location: " . BASE_URL . '/' . ltrim($route, '/'));
+        $url = BASE_URL . '/' . ltrim($route, '/');
+
+        // Ajax Request
+        if (
+            isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+        ) {
+            header("X-Redirect: $url");
+            exit;
+        }
+
+        header("Location: $url");
         exit;
     }
 
