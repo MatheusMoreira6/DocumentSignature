@@ -6,30 +6,33 @@ class Request
 {
     private static array $errors = [];
 
-    public static function validatePost(array $keys): bool
+    public static function validatePost(array $fields): bool
     {
-        return self::process($keys, INPUT_POST);
+        return self::process($fields, INPUT_POST);
     }
 
-    public static function validateGet(array $keys): bool
+    public static function validateGet(array $fields): bool
     {
-        return self::process($keys, INPUT_GET);
+        return self::process($fields, INPUT_GET);
     }
 
-    public static function errors(): array
+    public static function errors(string $message = 'Dados inválidos'): array
     {
-        return self::$errors;
+        return [
+            'message' => $message,
+            'errors' => self::$errors
+        ];
     }
 
-    private static function process(array $keys, int $source): bool
+    private static function process(array $fields, int $source): bool
     {
         self::$errors = [];
 
-        foreach ($keys as $key) {
-            $raw = filter_input($source, $key, FILTER_UNSAFE_RAW);
+        foreach ($fields as $field => $message) {
+            $raw = filter_input($source, $field, FILTER_UNSAFE_RAW);
 
             if ($raw === null || trim($raw) === '') {
-                self::$errors[] = $key;
+                self::$errors[$field] = $message ?: "Campo {$field} é obrigatório";
             }
         }
 
