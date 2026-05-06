@@ -41,7 +41,7 @@ class Router
         $path = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/') ?: '/';
 
         if (!isset($this->routes[$method][$path])) {
-            $this->abort(404, "Page Not Found");
+            $this->abort(404, "Página não encontrada");
         }
 
         return $this->routes[$method][$path];
@@ -49,15 +49,15 @@ class Router
 
     private function handleAuth(array $route): void
     {
-        if ($route['protected'] && !isset($_SESSION['user_id'])) {
-            $this->abort(401, "Unauthorized Access");
+        if ($route['protected'] && !Auth::check()) {
+            $this->abort(401, "Sessão expirada");
         }
     }
 
     private function resolveAction(string $action): array
     {
         if (!str_contains($action, '@')) {
-            $this->abort(500, "Invalid route action format");
+            $this->abort(500, "Formato de ação da rota inválido");
         }
 
         [$class, $method] = explode('@', $action);
@@ -70,13 +70,13 @@ class Router
         $class = "App\\Controllers\\" . $class;
 
         if (!class_exists($class)) {
-            $this->abort(404, "Controller Not Found");
+            $this->abort(404, "Controller não encontrado");
         }
 
         $controller = new $class();
 
         if (!method_exists($controller, $method)) {
-            $this->abort(404, "Method Not Found");
+            $this->abort(404, "Método não encontrado");
         }
 
         $controller->$method();
@@ -85,6 +85,18 @@ class Router
     private function abort(int $status, string $message = ""): void
     {
         http_response_code($status);
+
+        if (is_ajax()) {
+            header('Content-Type: application/json');
+            echo json_encode(['message' => $message]);
+            exit;
+        }
+
+        if ($status === 401) {
+            header('Location: ' . BASE_URL . '/auth/login');
+            exit;
+        }
+
         echo $message;
         exit;
     }
