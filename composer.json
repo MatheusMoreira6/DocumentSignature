@@ -1,0 +1,13 @@
+{
+    "name": "vendor/document-signature",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Matheus Moreira Mendes"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "defuse/php-encryption": "^2.4"
+    }
+}
