@@ -9,5 +9,8 @@
     "minimum-stability": "stable",
     "require": {
         "defuse/php-encryption": "^2.4"
+    },
+    "scripts": {
+        "generate:key": "php ./cli/generate_key.php"
     }
 }
