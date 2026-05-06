@@ -6,162 +6,116 @@ use DateTime;
 
 class Request
 {
-    private static array $errors = [];
+    private string $method;
+    private array $data;
+    private array $errors = [];
 
-    public static function validatePost(array $fields): bool
+    public function __construct()
     {
-        return self::process($fields, INPUT_POST);
+        $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+        $this->data = match ($this->method) {
+            'POST' => $_POST,
+            'GET' => $_GET,
+            default => $_REQUEST
+        };
     }
 
-    public static function validateGet(array $fields): bool
+    private function raw(string $key): mixed
     {
-        return self::process($fields, INPUT_GET);
+        return filter_var($this->data[$key] ?? null, FILTER_UNSAFE_RAW);
     }
 
-    public static function errors(string $message = 'Dados inválidos'): array
+    public function validate(array $fields): bool
     {
-        return [
-            'message' => $message,
-            'errors' => self::$errors
-        ];
-    }
-
-    private static function process(array $fields, int $source): bool
-    {
-        self::$errors = [];
+        $this->errors = [];
 
         foreach ($fields as $field => $message) {
-            $raw = filter_input($source, $field, FILTER_UNSAFE_RAW);
+            $raw = $this->raw($field);
 
-            if ($raw === null || trim($raw) === '') {
-                self::$errors[$field] = $message ?: "Campo {$field} é obrigatório";
+            if ($raw === null || trim((string) $raw) === '') {
+                $this->errors[$field] = $message ?: "O campo {$field} é obrigatório.";
             }
         }
 
-        return empty(self::$errors);
+        return empty($this->errors);
     }
 
-    public static function getInt(string $key): int
+    public function errors(): array
     {
-        return (int) filter_input(INPUT_GET, $key, FILTER_VALIDATE_INT);
+        return $this->errors;
     }
 
-    public static function getFloat(string $key): float
+    public function input(string $key): mixed
     {
-        return (float) filter_input(INPUT_GET, $key, FILTER_VALIDATE_FLOAT);
+        return $this->raw($key);
     }
 
-    public static function getString(string $key): string
+    public function string(string $key): string
     {
-        $value = filter_input(INPUT_GET, $key, FILTER_UNSAFE_RAW) ?? '';
-
-        return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+        return trim((string) ($this->raw($key) ?? ''));
     }
 
-    public static function getEmail(string $key): string|false
+    public function int(string $key): ?int
     {
-        return filter_input(INPUT_GET, $key, FILTER_VALIDATE_EMAIL);
+        $value = filter_var($this->raw($key), FILTER_VALIDATE_INT);
+
+        return $value !== false ? (int) $value : null;
     }
 
-    public static function getUrl(string $key): string|false
+    public function float(string $key): ?float
     {
-        return filter_input(INPUT_GET, $key, FILTER_VALIDATE_URL);
+        $value = filter_var($this->raw($key), FILTER_VALIDATE_FLOAT);
+
+        return $value !== false ? (float) $value : null;
     }
 
-    public static function getBool(string $key): bool
+    public function bool(string $key): bool
     {
-        return filter_input(INPUT_GET, $key, FILTER_VALIDATE_BOOLEAN) ?? false;
+        return filter_var($this->raw($key), FILTER_VALIDATE_BOOLEAN) === true;
     }
 
-    public static function getArray(string $key): array
+    public function email(string $key): ?string
     {
-        $value = filter_input(INPUT_GET, $key, FILTER_UNSAFE_RAW, FILTER_REQUIRE_ARRAY);
+        $value = filter_var($this->raw($key), FILTER_VALIDATE_EMAIL);
+
+        return $value !== false ? $value : null;
+    }
+
+    public function url(string $key): ?string
+    {
+        $value = filter_var($this->raw($key), FILTER_VALIDATE_URL);
+
+        return $value !== false ? $value : null;
+    }
+
+    public function date(string $key, string $format = 'Y-m-d'): ?string
+    {
+        $date = DateTime::createFromFormat($format, trim((string) ($this->raw($key) ?? '')));
+
+        return $date ? $date->format($format) : null;
+    }
+
+    public function array(string $key): array
+    {
+        $value = $this->data[$key] ?? [];
 
         if (!is_array($value)) return [];
 
-        return array_map(fn($v) => htmlspecialchars(trim($v), ENT_QUOTES, 'UTF-8'), $value);
+        return array_map(fn($v) => trim((string) $v), $value);
     }
 
-    public static function getDate(string $key): string|false
+    public function numbers(string $key): string
     {
-        $value = filter_input(INPUT_GET, $key, FILTER_UNSAFE_RAW) ?? '';
+        $value = (string) ($this->raw($key) ?? '');
 
-        $date = DateTime::createFromFormat('Y-m-d', trim($value));
-
-        return $date ? $date->format('Y-m-d') : false;
+        return preg_replace('/\D/', '', $value);
     }
 
-    public static function getRegex(string $key, string $pattern): string
+    public function regex(string $key, string $pattern): ?string
     {
-        $value = filter_input(INPUT_GET, $key, FILTER_UNSAFE_RAW) ?? '';
+        $value = (string) ($this->raw($key) ?? '');
 
-        return preg_match($pattern, $value) ? $value : '';
-    }
-
-    public static function getNumbers(string $key): string
-    {
-        return self::getRegex($key, '/\D/');
-    }
-
-    public static function postInt(string $key): int
-    {
-        return (int) filter_input(INPUT_POST, $key, FILTER_VALIDATE_INT);
-    }
-
-    public static function postFloat(string $key): float
-    {
-        return (float) filter_input(INPUT_POST, $key, FILTER_VALIDATE_FLOAT);
-    }
-
-    public static function postString(string $key): string
-    {
-        $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW) ?? '';
-
-        return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
-    }
-
-    public static function postEmail(string $key): string|false
-    {
-        return filter_input(INPUT_POST, $key, FILTER_VALIDATE_EMAIL);
-    }
-
-    public static function postUrl(string $key): string|false
-    {
-        return filter_input(INPUT_POST, $key, FILTER_VALIDATE_URL);
-    }
-
-    public static function postBool(string $key): bool
-    {
-        return filter_input(INPUT_POST, $key, FILTER_VALIDATE_BOOLEAN) ?? false;
-    }
-
-    public static function postArray(string $key): array
-    {
-        $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW, FILTER_REQUIRE_ARRAY);
-
-        if (!is_array($value)) return [];
-
-        return array_map(fn($v) => htmlspecialchars(trim($v), ENT_QUOTES, 'UTF-8'), $value);
-    }
-
-    public static function postDate(string $key): string|false
-    {
-        $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW) ?? '';
-
-        $date = DateTime::createFromFormat('Y-m-d', trim($value));
-
-        return $date ? $date->format('Y-m-d') : false;
-    }
-
-    public static function postRegex(string $key, string $pattern): string
-    {
-        $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW) ?? '';
-
-        return preg_match($pattern, $value) ? $value : '';
-    }
-
-    public static function postNumbers(string $key): string
-    {
-        return self::postRegex($key, '/\D/');
+        return preg_match($pattern, $value) ? $value : null;
     }
 }
