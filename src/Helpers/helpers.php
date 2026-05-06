@@ -30,3 +30,8 @@ function url(string $route = ''): string
 {
     return BASE_URL . '/' . ltrim($route, '/');
 }
+
+function is_ajax(): bool
+{
+    return strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
+}
