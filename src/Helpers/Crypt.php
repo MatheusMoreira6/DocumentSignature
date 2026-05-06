@@ -6,7 +6,7 @@ use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
 use Exception;
 
-class CryptoHelper
+class Crypt
 {
     private static ?Key $key = null;
 
