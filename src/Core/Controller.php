@@ -1,8 +1,8 @@
 <?php
 
-namespace Core;
+namespace App\Core;
 
-use Helpers\Request;
+use App\Helpers\Request;
 
 class Controller
 {

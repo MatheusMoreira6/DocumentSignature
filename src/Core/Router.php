@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace App\Core;
 
 class Router
 {
@@ -67,7 +67,7 @@ class Router
 
     private function callController(string $class, string $method): void
     {
-        $class = "Controllers\\" . $class;
+        $class = "App\\Controllers\\" . $class;
 
         if (!class_exists($class)) {
             $this->abort(404, "Controller Not Found");

@@ -2,7 +2,7 @@
 
 require __DIR__ . '/../bootstrap/app.php';
 
-$router = new Core\Router();
+$router = new \App\Core\Router();
 
 require __DIR__ . '/../route/web.php';
 
