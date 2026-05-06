@@ -15,7 +15,6 @@ class Controller
     {
         header("Content-Type: application/json");
         http_response_code($status);
-
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -24,16 +23,12 @@ class Controller
     {
         $url = BASE_URL . '/' . ltrim($route, '/');
 
-        // Ajax Request
-        if (
-            isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
-        ) {
+        if (is_ajax()) {
             header("X-Redirect: $url");
-            exit;
+        } else {
+            header("Location: $url");
         }
 
-        header("Location: $url");
         exit;
     }
 
