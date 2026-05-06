@@ -79,7 +79,7 @@ class Router
             $this->abort(404, "Método não encontrado");
         }
 
-        $controller->$method();
+        $controller->$method(new Request());
     }
 
     private function abort(int $status, string $message = ""): void
