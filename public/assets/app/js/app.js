@@ -75,6 +75,32 @@
 
         return true;
     };
+
+    window.handleAjaxError = function (jqXHR, fallback = "Ocorreu um erro inesperado.") {
+        const errors = jqXHR?.responseJSON?.errors;
+
+        if (!errors) {
+            Toast.error(fallback);
+            return;
+        }
+
+        if (typeof errors === "string") {
+            Toast.error(errors);
+            return;
+        }
+
+        if (Array.isArray(errors)) {
+            errors.forEach((error) => Toast.error(error));
+            return;
+        }
+
+        if (typeof errors === "object") {
+            Object.values(errors).forEach((error) => Toast.error(error));
+            return;
+        }
+
+        Toast.error(fallback);
+    };
 })();
 
 (function ($) {
