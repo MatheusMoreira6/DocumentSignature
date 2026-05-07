@@ -50,7 +50,7 @@ class Router
     private function handleAuth(array $route): void
     {
         if ($route['protected'] && !Auth::check()) {
-            $this->abort(401, "Sessão expirada");
+            $this->abort(401, "Não autorizado");
         }
     }
 
