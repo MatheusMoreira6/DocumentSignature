@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Core;
+
+use Exception;
+
+class Certising
+{
+    private Http $http;
+
+    public function __construct()
+    {
+        $this->http = new Http(CERTISING_API_BASE_URL);
+    }
+
+    public function uploadDocument(string $token, string $file_path, ?string $file_name = null): mixed
+    {
+        if (!is_readable($file_path)) {
+            throw new Exception('Arquivo não encontrado ou não é legível: ' . $file_path);
+        }
+
+        $content = file_get_contents($file_path);
+
+        if ($content === false) {
+            throw new Exception('Não foi possível ler o arquivo: ' . $file_path);
+        }
+
+        $bytes = array_values(unpack('C*', $content));
+
+        $payload = [
+            'fileName' => $file_name ?: basename($file_path),
+            'bytes' => $bytes,
+        ];
+
+        return $this->http->sendRequest(
+            'document/upload',
+            'POST',
+            ['token' => $token],
+            $payload
+        );
+    }
+
+    public function configureSignature(
+        string $token,
+        string $upload_id,
+        string $document_name,
+        array $sender,
+        array $signers = [],
+        array $electronic_signers = [],
+        array $server_signers = [],
+        array $extra = []
+    ): mixed {
+        $data = [
+            'document' => [
+                'name' => $document_name,
+                'upload' => [
+                    'id' => $upload_id,
+                    'name' => $document_name,
+                ],
+            ],
+            'sender' => $sender,
+            'signers' => $signers,
+            'electronicSigners' => $electronic_signers,
+            'serverSigners' => $server_signers,
+        ];
+
+        $payload = array_filter($data, function ($value) {
+            return $value !== [] && $value !== null;
+        });
+
+        if (!empty($extra)) {
+            $payload = array_merge($payload, $extra);
+        }
+
+        return $this->http->sendRequest(
+            'document/create',
+            'POST',
+            ['token' => $token],
+            $payload
+        );
+    }
+
+    public function getDocumentStatus(string $token, string $document_id): mixed
+    {
+        $query = http_build_query(['documentId' => $document_id]);
+
+        return $this->http->sendRequest(
+            'document/details?' . $query,
+            'GET',
+            ['token' => $token]
+        );
+    }
+
+    public function downloadDocument(
+        string $token,
+        string $document_id,
+        bool $include_original = true,
+        bool $include_manifest = true,
+        bool $zipped = true
+    ): mixed {
+        $query = http_build_query([
+            'documentId' => $document_id,
+            'includeOriginal' => $include_original ? 'true' : 'false',
+            'includeManifest' => $include_manifest ? 'true' : 'false',
+            'zipped' => $zipped ? 'true' : 'false',
+        ]);
+
+        return $this->http->sendRequest(
+            'document/package?' . $query,
+            'GET',
+            ['token' => $token]
+        );
+    }
+}

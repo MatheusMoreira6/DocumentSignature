@@ -1,5 +1,4 @@
 <?php
 
-define('BASE_PATH', dirname(__DIR__));
-define('BASE_URL', base_url());
 define('ENCRYPTION_KEY', '{ENCRYPTION_KEY}'); // Run: docker exec -it php composer generate:key
+define('CERTISING_API_BASE_URL', 'https://api-sbx.portaldeassinaturas.com.br/api/v2');
