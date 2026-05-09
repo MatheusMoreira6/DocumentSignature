@@ -7,7 +7,7 @@
         <form id="form-login" class="row g-3 needs-validation" novalidate>
             <div class="col-12">
                 <label for="email" class="form-label fw-semibold">E-mail</label>
-                <input type="email" name="email" id="email" class="form-control" required>
+                <input type="email" name="email" id="email" class="form-control" maxlength="255" required>
                 <div class="invalid-feedback">Digite seu e-mail</div>
             </div>
 
@@ -25,7 +25,7 @@
 
             <div class="col-12">
                 <div class="d-grid d-sm-block">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-dark">
                         <i class="bi bi-box-arrow-in-right"></i>
                         Entrar
                     </button>

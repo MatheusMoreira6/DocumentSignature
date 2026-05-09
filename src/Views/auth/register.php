@@ -1,42 +1,48 @@
 <div class="vh-100 vw-100 d-flex">
-    <div class="border rounded shadow-sm p-3 m-auto" style="width: 20rem;">
+    <div class="border rounded shadow-sm p-3 m-auto" style="width: 40rem;">
         <h5>Cadastro</h5>
 
         <hr>
 
         <form id="form-register" class="row g-3 needs-validation" novalidate>
-            <div class="col-12">
+            <div class="col-12 col-sm-8">
                 <label for="name" class="form-label fw-semibold">Nome</label>
-                <input type="text" name="name" id="name" class="form-control" required>
+                <input type="text" name="name" id="name" class="form-control" maxlength="255" required>
                 <div class="invalid-feedback">Digite seu nome</div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+                <label for="cpf" class="form-label fw-semibold">CPF</label>
+                <input type="text" name="cpf" id="cpf" class="form-control" required>
+                <div class="invalid-feedback">Digite seu CPF</div>
             </div>
 
             <div class="col-12">
                 <label for="email" class="form-label fw-semibold">E-mail</label>
-                <input type="email" name="email" id="email" class="form-control" required>
+                <input type="email" name="email" id="email" class="form-control" maxlength="255" required>
                 <div class="invalid-feedback">Digite seu e-mail</div>
             </div>
 
-            <div class="col-12">
+            <div class="col-12 col-sm-6">
                 <label for="password" class="form-label fw-semibold">Senha</label>
                 <input type="password" name="password" id="password" class="form-control" required>
                 <div class="invalid-feedback">Digite sua senha</div>
             </div>
 
-            <div class="col-12">
+            <div class="col-12 col-sm-6">
                 <label for="token" class="form-label fw-semibold">Token da Empresa</label>
                 <input type="text" name="token" id="token" class="form-control">
             </div>
 
             <div class="col-12">
-                <a href="<?= url("auth/login") ?>" class="text-decoration-none">
+                <a href="<?= url('auth/login') ?>" class="text-decoration-none">
                     Já tem uma conta? Faça login
                 </a>
             </div>
 
             <div class="col-12">
                 <div class="d-grid d-sm-block">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-dark">
                         <i class="bi bi-person-plus"></i>
                         Registrar
                     </button>
@@ -46,4 +52,4 @@
     </div>
 </div>
 
-<script type="text/javascript" src="<?= asset("app/js/auth/register.js?v=" . time()) ?>"></script>
+<script type="text/javascript" src="<?= asset('app/js/auth/register.js?v=' . time()) ?>"></script>

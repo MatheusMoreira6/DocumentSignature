@@ -7,13 +7,24 @@ use App\Core\Model;
 class UserModel extends Model
 {
     protected string $table = "users";
-    protected array $columns = ["id", "name", "email", "password", "token"];
+    protected array $columns = ["id", "name", "cpf", "email", "password", "token"];
 
-    public function userExists(string $email): bool
+    public function userExists(string $email, ?string $cpf = null): bool
     {
         $user = $this->findUserByEmail($email);
 
+        if ($cpf !== null) {
+            $user = $this->findUserByCpf($cpf);
+        }
+
         return $user !== false;
+    }
+
+    public function findUserByCpf(string $cpf): array|false
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE cpf = ?";
+
+        return $this->select($sql, [$cpf], false);
     }
 
     public function findUserByEmail(string $email): array|false

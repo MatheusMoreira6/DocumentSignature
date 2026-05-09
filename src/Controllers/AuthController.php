@@ -58,6 +58,7 @@ class AuthController extends Controller
     {
         $fields_required = [
             "name" => "Nome é obrigatório",
+            "cpf" => "CPF é obrigatório",
             "email" => "Email é obrigatório",
             "password" => "Senha é obrigatória",
         ];
@@ -66,15 +67,22 @@ class AuthController extends Controller
             $this->json(['errors' => $request->errors()], 400);
         }
 
+        $cpf = $request->regex('cpf', '/\D/', '', '/^[0-9]{11}$/');
+
+        if ($cpf === null) {
+            $this->json(['errors' => 'CPF inválido'], 400);
+        }
+
         $data = [
             "name" => $request->string("name"),
             "email" => $request->email("email"),
+            "cpf" => $cpf,
             "password" => Hash::make($request->string("password")),
             "token" => Crypt::encrypt($request->string("token")),
         ];
 
-        if ($this->userModel->userExists($data['email'])) {
-            $this->json(['errors' => 'Email já cadastrado'], 400);
+        if ($this->userModel->userExists($data['email'], $data['cpf'])) {
+            $this->json(['errors' => 'Email ou CPF já cadastrado'], 400);
         }
 
         try {

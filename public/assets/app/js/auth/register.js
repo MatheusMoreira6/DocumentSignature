@@ -1,4 +1,6 @@
 $(function () {
+    $("#cpf").mask("999.999.999-99");
+
     $("#form-register").submit(function (e) {
         e.preventDefault();
 
