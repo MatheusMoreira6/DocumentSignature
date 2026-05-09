@@ -15,6 +15,7 @@
         <script src="<?= asset("vendor/datatables/datatables.min.js") ?>"></script>
         <script src="<?= asset("vendor/toastify/toastify.js") ?>"></script>
         <script src="<?= asset("vendor/sweetalert2/sweetalert2.min.js") ?>"></script>
+        <script src="<?= asset("vendor/jquery/jquery.mask.min.js") ?>"></script>
         <script src="<?= asset("app/js/app.js?v=" . time()) ?>"></script>
 
         <link rel="stylesheet" href="<?= asset("vendor/bootstrap/bootstrap.min.css") ?>">
