@@ -138,12 +138,18 @@ class Request
         return preg_replace('/\D/', '', $this->string($key));
     }
 
-    public function regex(string $key, string $pattern): ?string
+    public function regex(string $key, string $pattern, string $replace = '', ?string $validation = null): ?string
     {
         $value = $this->string($key);
 
         if ($value === '') return null;
 
-        return preg_match($pattern, $value) ? $value : null;
+        $value = preg_replace($pattern, $replace, $value);
+
+        if ($validation !== null && !preg_match($validation, $value)) {
+            return null;
+        }
+
+        return $value;
     }
 }
