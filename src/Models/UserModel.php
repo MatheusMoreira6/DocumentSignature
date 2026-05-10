@@ -20,6 +20,13 @@ class UserModel extends Model
         return $user !== false;
     }
 
+    public function findUserById(int $user_id): array|false
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+
+        return $this->select($sql, [$user_id], false);
+    }
+
     public function findUserByCpf(string $cpf): array|false
     {
         $sql = "SELECT * FROM {$this->table} WHERE cpf = ?";
