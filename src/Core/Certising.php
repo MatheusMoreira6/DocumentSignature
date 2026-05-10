@@ -51,6 +51,7 @@ class Certising
         array $extra = []
     ): mixed {
         $data = [
+            'typeId' => 1,
             'document' => [
                 'name' => $document_name,
                 'upload' => [
@@ -80,6 +81,17 @@ class Certising
         );
     }
 
+    public function deleteDocument(string $token, string $document_id): mixed
+    {
+        $query = http_build_query(['id' => $document_id]);
+
+        return $this->http->sendRequest(
+            'document/delete?' . $query,
+            'DELETE',
+            ['token' => $token]
+        );
+    }
+
     public function getDocumentStatus(string $token, string $document_id): mixed
     {
         $query = http_build_query(['documentId' => $document_id]);
@@ -91,24 +103,23 @@ class Certising
         );
     }
 
-    public function downloadDocument(
-        string $token,
-        string $document_id,
-        bool $include_original = true,
-        bool $include_manifest = true,
-        bool $zipped = true
-    ): mixed {
+    public function downloadDocument(string $token, string $document_id, bool $include_original = true): mixed
+    {
         $query = http_build_query([
-            'documentId' => $document_id,
-            'includeOriginal' => $include_original ? 'true' : 'false',
-            'includeManifest' => $include_manifest ? 'true' : 'false',
-            'zipped' => $zipped ? 'true' : 'false',
+            'key' => $document_id,
+            'includeOriginal' => $include_original ? 'true' : 'false'
         ]);
 
-        return $this->http->sendRequest(
+        $response = $this->http->sendRequest(
             'document/package?' . $query,
             'GET',
             ['token' => $token]
         );
+
+        return [
+            'name' => $response['name'],
+            'mimeType' => $response['mimeType'],
+            'content' => pack('C*', ...$response['bytes'])
+        ];
     }
 }
