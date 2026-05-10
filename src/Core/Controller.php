@@ -32,10 +32,13 @@ class Controller
         exit;
     }
 
-    protected function layout(string $view, array $params = []): void
+    protected function layout(string $view, array $params = [], bool $navbar = false): void
     {
-        $this->view('layout/header', $params);
+        $this->view('layout/header');
+
+        if ($navbar) $this->view('layout/navbar');
+
         $this->view($view, $params);
-        $this->view('layout/footer', $params);
+        $this->view('layout/footer');
     }
 }

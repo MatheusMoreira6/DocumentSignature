@@ -21,6 +21,14 @@ function base_url(): string
     return $protocol . '://' . $_SERVER['HTTP_HOST'];
 }
 
+function current_route(string $route = '/'): bool
+{
+    $current = '/' . trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $route = '/' . trim($route, '/');
+
+    return $current === $route;
+}
+
 function asset(string $path): string
 {
     return BASE_URL . '/assets/' . ltrim($path, '/');
