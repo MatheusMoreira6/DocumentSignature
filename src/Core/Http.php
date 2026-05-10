@@ -67,6 +67,7 @@ class Http
     private function buildHeaders(array $headers): array
     {
         $normalized_headers = [
+            'Content-Type: application/json',
             'Accept: application/json',
         ];
 
