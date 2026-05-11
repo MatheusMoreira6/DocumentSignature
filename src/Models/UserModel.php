@@ -45,4 +45,11 @@ class UserModel extends Model
     {
         return $this->insert($data);
     }
+
+    public function updateUser(array $data, int $user_id): bool
+    {
+        $result = $this->update($data, ['id' => $user_id]);
+
+        return $result > 0;
+    }
 }

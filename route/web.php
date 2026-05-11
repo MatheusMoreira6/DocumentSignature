@@ -15,4 +15,4 @@ $router->post("/documents/destroy", "DocumentsController@destroy", true);
 $router->post("/documents/check-status", "DocumentsController@checkStatus", true);
 
 $router->get("/profile", "ProfileController@index", true);
-$router->post("/profile/update", "ProfileController@update", true);
+$router->post("/profile", "ProfileController@update", true);
