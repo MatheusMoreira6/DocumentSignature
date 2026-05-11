@@ -75,14 +75,19 @@ class DocumentsController extends Controller
 
         $document = $this->documentModel->findDocumentById($document_id);
 
-        $certising = new Certising();
-        $file = $certising->downloadDocument($token, $document['certisign_document_id']);
+        try {
+            $certising = new Certising();
+            $file = $certising->downloadDocument($token, $document['certisign_document_id']);
 
-        header('Content-Type: ' . $file['mimeType']);
-        header('Content-Disposition: attachment; filename="' . $file['name'] . '"');
-        header('Content-Length: ' . strlen($file['content']));
+            header('Content-Type: ' . $file['mimeType']);
+            header('Content-Disposition: attachment; filename="' . $file['name'] . '"');
+            header('Content-Length: ' . strlen($file['content']));
 
-        echo $file['content'];
+            echo $file['content'];
+        } catch (Exception $e) {
+            error_log('Erro ao baixar documento: ' . $e->getMessage());
+            die('Erro ao baixar documento.');
+        }
     }
 
     public function store(Request $request): void
