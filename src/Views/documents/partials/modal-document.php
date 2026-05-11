@@ -12,7 +12,7 @@
                         <div class="row g-2">
                             <div class="col-12">
                                 <label for="file" class="form-label fw-semibold">Arquivo</label>
-                                <input type="file" class="form-control" id="file" name="file" required>
+                                <input type="file" class="form-control" id="file" name="file" accept="application/pdf, application/msword, application/vnd.ms-excel" required>
                             </div>
 
                             <div class="col-12 pt-4 pb-2">

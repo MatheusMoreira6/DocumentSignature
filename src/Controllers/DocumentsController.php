@@ -6,11 +6,13 @@ use App\Core\Certising;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Session;
-use App\Helpers\Crypt;
 use App\Models\DocumentModel;
 use App\Models\SignatureModel;
 use App\Models\SignatureTypeModel;
 use App\Models\UserModel;
+use App\Services\CertisingService;
+use App\Services\UserService;
+use Exception;
 
 class DocumentsController extends Controller
 {
@@ -61,11 +63,20 @@ class DocumentsController extends Controller
     {
         $document_id = $request->int("id");
 
-        $user = $this->userModel->findUserById(Session::userId());
+        $token = null;
+
+        try {
+            $userService = new UserService();
+            $token = $userService->getTokenByUserId(Session::userId());
+        } catch (Exception $e) {
+            error_log('Erro ao obter token de autenticação: ' . $e->getMessage());
+            $this->json(['errors' => $e->getMessage()], 400);
+        }
+
         $document = $this->documentModel->findDocumentById($document_id);
 
         $certising = new Certising();
-        $file = $certising->downloadDocument(Crypt::decrypt($user['token']), $document['certisign_document_id']);
+        $file = $certising->downloadDocument($token, $document['certisign_document_id']);
 
         header('Content-Type: ' . $file['mimeType']);
         header('Content-Disposition: attachment; filename="' . $file['name'] . '"');
@@ -76,34 +87,74 @@ class DocumentsController extends Controller
 
     public function store(Request $request): void
     {
-        $signers = $request->array('signers');
+        $signers_document = $request->array('signers');
         $document = $_FILES['file'];
 
-        if (empty($document) || $document['error'] !== UPLOAD_ERR_OK) {
-            $this->json(['errors' => 'Arquivo inválido ou não enviado.'], 400);
+        $signers = array_filter($signers_document, function ($signer) {
+            return $signer['type'] == 1;
+        });
+
+        $eletronic_signers = array_filter($signers_document, function ($signer) {
+            return $signer['type'] == 2;
+        });
+
+        /**
+         * Validação básica do arquivo
+         */
+        [$file_errors, $msg_error] = validate_file($document, [], (5 * 1024 * 1024));
+
+        if ($file_errors === false) {
+            $this->json(['errors' => $msg_error], 400);
         }
 
+        /**
+         * Token de autenticação do usuário
+         */
         $user = $this->userModel->findUserById(Session::userId());
+        $token = null;
 
-        if (empty($user['token'])) {
-            $this->json(['errors' => 'Token de autenticação não encontrado.'], 400);
+        try {
+            $userService = new UserService();
+            $token = $userService->getTokenByUserId(Session::userId());
+        } catch (Exception $e) {
+            error_log('Erro ao obter token de autenticação: ' . $e->getMessage());
+            $this->json(['errors' => $e->getMessage()], 400);
         }
 
-        $token = Crypt::decrypt($user['token']);
+        /**
+         * Envio do documento para a Certisign
+         */
+        $certisign_document = null;
 
-        if (!$token) {
-            $this->json(['errors' => 'Token de autenticação inválido.'], 400);
+        try {
+            $certisingService = new CertisingService();
+
+            $certisign_document = $certisingService->createDocument(
+                $token,
+                $document['tmp_name'],
+                $document['name'],
+                $user['name'],
+                $user['email'],
+                $user['cpf'],
+                $signers,
+                $eletronic_signers
+            );
+        } catch (Exception $e) {
+            error_log('Erro ao criar documento na Certisign: ' . $e->getMessage());
+            $this->json(['errors' => 'Erro ao criar documento.'], 500);
         }
 
-        // $certising = new Certising();
-        // $upload_id = $certising->uploadDocument($token, $document['tmp_name'], $document['name']);
-
+        /**
+         * Armazenar informações do documento e signatários no banco de dados
+         */
         $this->documentModel->beginTransaction();
 
         $db_document = [
             'user_id' => Session::userId(),
-            'certisign_document_id' => bin2hex(random_bytes(16)),
+            'certisign_document_id' => $certisign_document['id'],
+            'certisign_chave' => $certisign_document['chave'],
             'file_name' => $document['name'],
+            'sign_url' => $certisign_document['signUrl'],
             'status_id' => 1,
         ];
 
@@ -114,8 +165,8 @@ class DocumentsController extends Controller
             $this->json(['errors' => 'Erro ao criar documento.'], 500);
         }
 
-        foreach ($signers as $signer) {
-            $cpf = isset($signer['cpf']) ? preg_replace('/\D/', '', $signer['cpf']) : null;
+        foreach ($signers_document as $signer) {
+            $cpf = isset($signer['cpf']) ? regex($signer['cpf'], '/\D/', '') : null;
 
             if (empty($cpf) || strlen($cpf) !== 11) {
                 $this->documentModel->rollBack();

@@ -32,26 +32,30 @@ class Certising
             'bytes' => $bytes,
         ];
 
-        return $this->http->sendRequest(
+        $response = $this->http->sendRequest(
             'document/upload',
             'POST',
             ['token' => $token],
             $payload
         );
+
+        if (!isset($response['uploadId'])) {
+            throw new Exception('Resposta de upload inválida: ' . json_encode($response));
+        }
+
+        return $response['uploadId'];
     }
 
-    public function configureSignature(
+    public function createDocument(
         string $token,
         string $upload_id,
         string $document_name,
         array $sender,
         array $signers = [],
         array $electronic_signers = [],
-        array $server_signers = [],
-        array $extra = []
     ): mixed {
         $data = [
-            'typeId' => 1,
+            // 'typeId' => 1,
             'document' => [
                 'name' => $document_name,
                 'upload' => [
@@ -62,16 +66,17 @@ class Certising
             'sender' => $sender,
             'signers' => $signers,
             'electronicSigners' => $electronic_signers,
-            'serverSigners' => $server_signers,
+            // 'serverSigners' => [
+            //     [
+            //         'step' => 2,
+            //         'certificateId' => 72
+            //     ]
+            // ],
         ];
 
         $payload = array_filter($data, function ($value) {
             return $value !== [] && $value !== null;
         });
-
-        if (!empty($extra)) {
-            $payload = array_merge($payload, $extra);
-        }
 
         return $this->http->sendRequest(
             'document/create',
@@ -88,17 +93,6 @@ class Certising
         return $this->http->sendRequest(
             'document/delete?' . $query,
             'DELETE',
-            ['token' => $token]
-        );
-    }
-
-    public function getDocumentStatus(string $token, string $document_id): mixed
-    {
-        $query = http_build_query(['documentId' => $document_id]);
-
-        return $this->http->sendRequest(
-            'document/details?' . $query,
-            'GET',
             ['token' => $token]
         );
     }
