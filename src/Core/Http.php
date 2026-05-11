@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use Exception;
+use JsonException;
 
 class Http
 {
@@ -29,34 +30,48 @@ class Http
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => strtoupper($method),
             CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_HEADER => true,
-            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_CONNECTTIMEOUT => 30,
             CURLOPT_TIMEOUT => 60,
         ];
 
         if ($body !== null) {
-            $options[CURLOPT_POSTFIELDS] = is_array($body) || is_object($body)
-                ? json_encode($body, JSON_UNESCAPED_UNICODE)
-                : $body;
+
+            if (is_array($body) || is_object($body)) {
+                $body = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            }
+
+            $options[CURLOPT_POSTFIELDS] = $body;
         }
 
         curl_setopt_array($curl, $options);
 
         $response = curl_exec($curl);
-        $error = curl_error($curl);
-        $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
 
         if ($response === false) {
-            throw new Exception("cURL Error: {$error} (HTTP Status Code: {$status_code})");
+            $error = curl_error($curl);
+            $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+            throw new Exception(
+                "cURL Error: {$error} (HTTP Status Code: {$status_code})"
+            );
         }
 
-        $body_content = substr($response, $header_size);
+        $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        return $this->decodeResponse($body_content);
+        if ($status_code >= 400) {
+            throw new Exception(
+                "HTTP Error: {$status_code} | Response: {$response}"
+            );
+        }
+
+        if ($response === '') {
+            return null;
+        }
+
+        return $this->decodeResponse($response);
     }
 
     private function buildUrl(string $url): string
@@ -85,12 +100,10 @@ class Http
 
     private function decodeResponse(string $body): mixed
     {
-        $decoded = json_decode($body, true);
-
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $decoded;
+        try {
+            return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new Exception('JSON Error: ' . $e->getMessage());
         }
-
-        throw new Exception("JSON Error: " . json_last_error_msg());
     }
 }
