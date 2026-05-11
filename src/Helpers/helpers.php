@@ -43,3 +43,35 @@ function is_ajax(): bool
 {
     return strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
 }
+
+function regex(string $value, string $pattern, string $replace = '', ?string $validation = null): ?string
+{
+    if ($value === '') return null;
+
+    $value = preg_replace($pattern, $replace, $value);
+
+    if ($validation !== null && !preg_match($validation, $value)) {
+        return null;
+    }
+
+    return $value;
+}
+
+function validate_file(array $file, array $allowed_types = [], int $max_size = 0): array
+{
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return [false, 'Arquivo inválido ou não enviado.'];
+    }
+
+    if (!empty($allowed_types) && !in_array($file['type'], $allowed_types)) {
+        return [false, 'Tipo de arquivo não permitido.'];
+    }
+
+    if ($max_size > 0 && $file['size'] > $max_size) {
+        $max_size_mb = $max_size / (1024 * 1024);
+
+        return [false, "O arquivo excede o limite de {$max_size_mb}MB."];
+    }
+
+    return [true, null];
+}
